@@ -1,6 +1,7 @@
 import numpy as np
 
 
+# 该种方式是将PE加到X中，而不是像ALiBi那样加到attention score中
 def sinusoidal_positional_encoding(seq_len: int, d_model: int) -> np.ndarray:
     # 初始化位置编码矩阵，全 0
     pe = np.zeros((seq_len, d_model))

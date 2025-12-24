@@ -1,5 +1,6 @@
 import numpy as np
 
+# 该算法通过修改 attention score 来引入位置编码信息
 
 def get_alibi_slopes(num_heads: int) -> np.ndarray:
     """
