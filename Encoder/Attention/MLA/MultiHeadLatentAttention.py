@@ -1,6 +1,7 @@
 import numpy as np
 
 
+# 本质上是引入了一个信息瓶颈层Z，把 K/V 的信息压缩到 latent 空间中，通过 Z 获取 X 中的全局信息，然后从 Z 生成 K/V 最后计算 attention
 def split_head(X, num_heads):
     """
     把 (B, S, D) 切成多头：
