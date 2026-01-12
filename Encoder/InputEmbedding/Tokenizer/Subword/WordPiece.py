@@ -1,5 +1,15 @@
 from collections import Counter, defaultdict
 
+# 该方法与BPE不同的是合并的策略
+# 目标是最大化训练语料在当前词表下的 likelihood
+# Score(w)≈P(w)/∏P(sub-pieces)
+# 如果把 playing 看成一个整体
+# 比拆成 play + ##ing 更能提高整体概率
+# 那就加入 playing
+# WordPiece 中的概率不是 token 的出现频率，而是基于一个简化语言模型的 likelihood 近似。
+# 工程实现中通常用 PMI 或对数似然比来衡量“合并一个子词是否能提高整体概率”。
+
+
 CORPUS = [
     "i love natural language processing",
     "i love deep learning",
@@ -15,12 +25,20 @@ SPECIAL_TOKENS = ["<pad>", "<unk>", "<bos>", "<eos>"]
 def init_vocab(corpus):
     """
     将每个词拆成：字符 + </w>
+    非词首字符要加##标记，比如：play， ##ing
     并统计词频
     """
     vocab = Counter()
     for sentence in corpus:
         for word in sentence.split():
-            vocab[tuple(word) + ("</w>",)] += 1
+            chars = []
+            for i, ch in enumerate(word):
+                if i == 0:
+                    chars.append(ch)
+                else:
+                    chars.append("##" + ch)
+            chars.append("</w>")
+            vocab[tuple(chars)] += 1
     return vocab
 
 
@@ -67,7 +85,10 @@ def merge_pair(pair, vocab):
         i = 0
         while i < len(word):
             if i < len(word) - 1 and word[i] == a and word[i + 1] == b:
-                new_word.append(a + b)
+                merged = a + b.replace("##", "")
+                if a.startswith("##"):
+                    merged = "##" + merged.lstrip("##")
+                new_word.append(merged)
                 i += 2
             else:
                 new_word.append(word[i])
@@ -101,21 +122,31 @@ def train_tokenizer(corpus=CORPUS, vocab_size=VOCAB_SIZE):
     return subwords, merge_rules
 
 
-def encode_word(word, merge_rules):
-    tokens = list(word) + ["</w>"]
+def encode_word(word, vocab):
+    tokens = []
+    i = 0
 
-    for a, b in merge_rules:
-        i = 0
-        new_tokens = []
-        while i < len(tokens):
-            if i < len(tokens) - 1 and tokens[i] == a and tokens[i + 1] == b:
-                new_tokens.append(a + b)
-                i += 2
-            else:
-                new_tokens.append(tokens[i])
-                i += 1
-        tokens = new_tokens
+    while i < len(word):
+        end = len(word)
+        found = None
 
+        while end > i:
+            piece = word[i:end]
+            if i > 0:
+                piece = "##" + piece
+            if piece in vocab:
+                found = piece
+                break
+            end -= 1
+
+        if found is None:
+            tokens.append("<unk>")
+            i += 1
+        else:
+            tokens.append(found)
+            i = end
+
+    tokens.append("</w>")
     return tokens
 
 
