@@ -2,6 +2,9 @@ import numpy as np
 
 
 # 该算法是通过修改QK矩阵来引入位置编码
+# 先构造旋转矩阵，再对QK矩阵应用旋转，当计算Q*K_T时，attention score 和 i−j 正相关
+# ALiBi 在长度外推上非常稳定，但它是通过线性 bias 约束 attention，表达能力有限；
+# RoPE 是通过旋转直接改变 QK 的几何关系，在建模复杂依赖和生成质量上更有优势，因此在大模型中更常用。
 
 def build_rope_cache(seq_len, d_head):
     """
