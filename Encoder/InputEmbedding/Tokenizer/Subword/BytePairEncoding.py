@@ -1,5 +1,12 @@
 from collections import Counter, defaultdict
 
+# 不断把出现频率最高的相邻符号对合并，逐步学出一个子词词表。
+# 把每个词拆成字符，在词尾加一个特殊符号（如 </w>）表示词边界
+# low -> l o w </w>
+# 统计 bigram（相邻对） 出现次数，找到出现频率最高的符号对进行合并
+# 重复过程直到达到词表限制
+
+
 CORPUS = [
     "i love natural language processing",
     "i love deep learning",
