@@ -1,6 +1,8 @@
 import numpy as np
 
 # 该算法通过修改 attention score 来引入位置编码信息
+# 最终是要为attention_score的每一个位置添加一个偏置，b(i,j)=−斜率⋅∣i−j∣
+# 斜率的分布呈指数分布
 
 def get_alibi_slopes(num_heads: int) -> np.ndarray:
     """
